@@ -1,0 +1,158 @@
+<html>
+<head>
+ <meta charset="utf-8">
+ <script src="https://ajax.googleapis.com/ajax/libs/cesiumjs/1.105/Build/Cesium/Cesium.js"></script>
+ <link href="https://ajax.googleapis.com/ajax/libs/cesiumjs/1.105/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+</head>
+
+<body>
+  <div id="cesiumContainer"></div>
+  <script>
+  window.onload = function() {
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1YjY2OWE1Yy0wYjc1LTQ1YTQtODMxZi1mZTQwOWQwOGEzZWYiLCJpZCI6MTUwODQ0LCJpYXQiOjE2ODgzNDY0MTh9.dEoQJsxp89FmreUbbxZiSjduEt9OKWZJC1jUJGCaI64';
+    window.viewer = new Cesium.Viewer('cesiumContainer', {
+        imageryProvider: false,
+        baseLayerPicker: false,
+        requestRenderMode: true,
+        // Hide the credit container
+        creditContainer: document.createElement('div'),
+        // Disable elements of the viewer
+        animation: false, // Hides the animation widget
+        geocoder: false, // Hides the geocoder widget
+        timeline: false, // Hides the timeline widget
+        sceneModePicker: false, // Hides the scene mode picker widget
+        navigationHelpButton: true, // Hides the navigation help button
+        homeButton: false, // Hides the home button
+        infoBox: false, // Hides the infobox widget
+        selectionIndicator: false, // Hides the selection indicator
+        terrainProvider: new Cesium.EllipsoidTerrainProvider(), // Set terrain to flat ellipsoid
+    });
+    viewer.scene.screenSpaceCameraController.enableRotate = true;
+    viewer.scene.screenSpaceCameraController.enableTranslate = true;
+    viewer.scene.screenSpaceCameraController.enableZoom = true;
+    viewer.scene.screenSpaceCameraController.enableTilt = true;
+    viewer.scene.screenSpaceCameraController.enableLook = true;
+    viewer.scene.globe.depthTestAgainstTerrain = false;
+    
+    viewer.scene.screenSpaceCameraController.rotateEventTypes = [
+        Cesium.CameraEventType.LEFT_DRAG,
+        Cesium.CameraEventType.RIGHT_DRAG,
+        Cesium.CameraEventType.MIDDLE_DRAG
+    ];
+    
+    const tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+        url: "https://tile.googleapis.com/v1/3dtiles/root.json?key= AIzaSyA8C9_h4ZqzKWDRJNNG3677SYaZgZ9XSWg",
+        showCreditsOnScreen: true,
+    }));
+
+    // Fly to final view
+    viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(-94.9960463696682, 29.739476474124718, 106.30991509431206),
+        orientation: {
+            heading: 5.475943510971197,
+            pitch: -0.2776868961099246,
+            roll: 0.000005434500673473508
+        },
+        duration: 10
+    });
+    
+    // Define preset positions for each worker (each worker has its own path)
+    const paths = [
+      // Square
+      [
+        { longitude: -94.99902968636162, latitude: 29.74303565316336 },
+        { longitude: -94.99897067776713, latitude: 29.742996062664684 },
+        { longitude: -94.9990350507793, latitude: 29.742902908488507 },
+        { longitude: -94.99906991949422, latitude: 29.74300072037122 },
+      ],
+      // Triangle
+      [
+        { longitude: -94.99845032925214, latitude: 29.74267468039115 },
+        { longitude: -94.99840473170184, latitude: 29.742609472267915 },
+        { longitude: -94.99847178692286, latitude: 29.742604814543206 },
+      ],
+      // Pentagon
+      [
+        { longitude: -94.998133828609, latitude: 29.743166068813142 },
+        { longitude: -94.99806945559682, latitude: 29.74314045146674 },
+        { longitude: -94.99799167154048, latitude: 29.74309154560547 },
+        { longitude: -94.99800240037582, latitude: 29.743049626276818 },
+        { longitude: -94.99811505314712, latitude: 29.74311250526322 },
+      ],
+      // Approximate circle (octagon)
+      [
+        { longitude: -94.99864613050498, latitude: 29.743377993888505 },
+        { longitude: -94.99875610106743, latitude: 29.743338403525012 },
+        { longitude: -94.99892776243318, latitude: 29.74340128233033 },
+        { longitude: -94.99899213544536, latitude: 29.743489778359933 },
+        { longitude: -94.99894385568624, latitude: 29.743552657070342 },
+        { longitude: -94.99881242745307, latitude: 29.74346881878101 },
+        { longitude: -94.99872659677018, latitude: 29.74342689961009 },
+        { longitude: -94.99872391456135, latitude: 29.74338265157731 },
+      ],
+    ];
+
+    const colors = [
+      Cesium.Color.RED,
+      Cesium.Color.GREEN,
+      Cesium.Color.BLUE,
+      Cesium.Color.YELLOW,
+    ];
+
+    const workers = paths.map((path, index) => ({
+      entity: viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(path[0].longitude, path[0].latitude, -18), // Set height to 0
+        point: {
+          pixelSize: 10,
+          color: colors[index],
+        },
+        label: {
+          text: `Worker ${index+1}`,
+          fillColor: colors[index],
+          showBackground: true,
+          backgroundColor: Cesium.Color.WHITE.withAlpha(0.7),
+          font: '14px sans-serif',
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          pixelOffset: new Cesium.Cartesian2(0, -20),
+        }
+      }),
+      path: path,
+      currentPathIndex: 0
+    }));
+    
+    viewer.entities.add({
+        name : 'Hazardous Zone',
+        polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights([
+                -94.999028, 29.741748, 0,
+                -94.998381, 29.741377, 0,
+                -94.99947730766101, 29.739891707833397, 0,
+                -95.0006285442912, 29.740520027778356, 0,
+                -94.9999378023131, 29.7414910599502, 0,
+                -94.99904970548407, 29.74182425509735, 0
+            ]),
+            material : Cesium.Color.RED.withAlpha(0.5),
+            outline : true,
+            outlineColor : Cesium.Color.RED,
+            height: 0
+        }
+    });
+
+    // Function to update workers' positions
+    function updateWorkersPositions() {
+      workers.forEach(worker => {
+        worker.currentPathIndex = (worker.currentPathIndex + 1) % worker.path.length;
+        const position = worker.path[worker.currentPathIndex];
+        worker.entity.position = Cesium.Cartesian3.fromDegrees(position.longitude, position.latitude, -21); // Set height to 0
+      });
+
+      viewer.scene.requestRender();
+    }
+
+    // Update workers' positions every 5 seconds
+    setInterval(updateWorkersPositions, 5000);
+  }
+  </script>
+</body>
+</html>
