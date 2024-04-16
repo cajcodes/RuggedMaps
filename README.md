@@ -1,3 +1,5 @@
+![RuggedEdge Logo](/logo.svg)
+
 # Cesium 3D Map Demo
 This is a demo application created using the Cesium JavaScript library to showcase a 3D map with hazardous regions and worker location tracking.
 
@@ -15,3 +17,6 @@ You can view a live demo of this application [here](https://www.ruggededge.ai/ma
 
 ## Customization
 You can customize the appearance and behavior of the map by modifying the Cesium viewer configuration, the hazardous zone polygon, and the worker entities and their paths.
+
+## License
+Proprietary - Copyright © RuggedEdge. All rights reserved.
